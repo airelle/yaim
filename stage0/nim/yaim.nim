@@ -1,15 +1,22 @@
-import os, unicode, db_sqlite
+import os, unicode, db_sqlite, parseopt
 
 
 let db = open("mytest.db", "", "", "")
 
-proc insertDB(path: string) =
-    db.exec(sql"INSERT INTO images (id_extensions, name) VALUES (0, ?)","jpeg")
+proc getExtID(ext: string): string =
+    let id = db.getValue(sql"select id from extensions where name = ?","jpeg")
+    return id
+
+
+proc insertDB(path: string, ext: string) =
+    let id = getExtID(ext = ext)
+    db.exec(sql"INSERT INTO images (id_extensions, name) VALUES (?, ?)", id, path)
 
 echo "hello"
 var paths: seq[string] = @[]
 for path in walkFiles(r"C:\Users\menut\Pictures\*"):
-    if splitFile(path).ext.toLower == ".jpg":
+    var ext = splitFile(path).ext.toLower
+    if ext == ".jpg":
         paths.add path
-        insertDB(path)
+        insertDB(path, ext)
 db.close()
